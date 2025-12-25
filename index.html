@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>怪物彈珠序號批次兌換工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft JhengHei', 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 700px;
+            width: 100%;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header .subtitle {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .section {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            color: #555;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        input[type="text"],
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s;
+            font-family: 'Courier New', monospace;
+        }
+
+        input[type="text"]:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 200px;
+            line-height: 1.8;
+        }
+
+        .hint {
+            color: #999;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        button {
+            flex: 1;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button.secondary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            box-shadow: 0 4px 15px rgba(245, 87, 108, 0.4);
+        }
+
+        button.secondary:hover {
+            box-shadow: 0 6px 20px rgba(245, 87, 108, 0.6);
+        }
+
+        .code-display {
+            background: #f9f9f9;
+            border: 2px dashed #667eea;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .code-display pre {
+            font-size: 11px;
+            line-height: 1.6;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .instruction {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 5px;
+            font-size: 13px;
+            line-height: 1.8;
+        }
+
+        .instruction strong {
+            color: #856404;
+        }
+
+        .instruction ol {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        .instruction li {
+            margin-bottom: 8px;
+        }
+
+        .highlight {
+            background: #e3f2fd;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+
+        /* 懸浮視窗樣式 */
+        .floating-progress {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            padding: 30px;
+            width: 90%;
+            max-width: 500px;
+            z-index: 10000;
+        }
+
+        .floating-progress h3 {
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: #f0f0f0;
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 12px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-card .number {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .stat-card .label {
+            color: #666;
+            font-size: 12px;
+        }
+
+        .stat-card.total .number {
+            color: #3b82f6;
+        }
+
+        .stat-card.success .number {
+            color: #10b981;
+        }
+
+        .stat-card.failed .number {
+            color: #ef4444;
+        }
+
+        .log-container {
+            background: #f9f9f9;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.8;
+        }
+
+        .log-item {
+            padding: 3px 0;
+        }
+
+        .log-success {
+            color: #10b981;
+        }
+
+        .log-error {
+            color: #ef4444;
+        }
+
+        .log-info {
+            color: #3b82f6;
+        }
+
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 9999;
+        }
+
+        .close-btn {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎮 怪物彈珠序號批次兌換</h1>
+            <p class="subtitle">一鍵兌換多組序號，省時又方便</p>
+        </div>
+
+        <div class="section">
+            <label for="gameUserId">遊戲 ID (game_user_id)</label>
+            <input type="text" id="gameUserId" placeholder="請輸入你的遊戲 ID，例如：689919365">
+            <p class="hint">📌 在遊戲設定中可以找到你的遊戲 ID</p>
+        </div>
+
+        <div class="section">
+            <label for="couponCodes">序號列表（每行一個）</label>
+            <textarea id="couponCodes" placeholder="請輸入序號...">
+TWTHREADS10000
+CHOCOLATE
+FRIEDCHICKEN
+SHOOTINGSTAR
+RAINYDAY
+PORKBUN
+DREAM
+FIGHT
+MEAL
+POPCORN
+Deadreload</textarea>
+            <p class="hint">💡 預設填入已發佈序號(updated:12/24)，可自行修改或新增</p>
+        </div>
+
+        <div class="button-group">
+            <button onclick="generateBookmarklet()">📌 生成書籤工具</button>
+            <!-- <button class="secondary" onclick="testInCurrentPage()">▶️ 立即執行</button> -->
+        </div>
+
+        <div class="code-display" id="codeDisplay">
+            <p style="margin-bottom: 10px; color: #667eea; font-weight: 600;">✨ 書籤代碼已生成！</p>
+            <pre id="bookmarkletCode"></pre>
+        </div>
+
+        <div class="instruction">
+            <strong>📖 使用說明：</strong>
+            <ol>
+                <li>輸入你的<span class="highlight">遊戲 ID</span></li>
+                <li>確認或修改<span class="highlight">序號列表</span></li>
+                <li>點擊 <span class="highlight">生成書籤工具</span></li>
+                <li>新增書籤，並將剛產生之書籤代碼複製貼上至<span class="highlight">書籤的網址欄位</span></li>
+                <li>進入 <a target="_blank" href="https://webshop.monster-strike.com.tw/serial-code">怪物彈珠序號輸入頁面</a>
+                    ，接著<span class="highlight">登入你的 MIXI-ID。</span></li>
+                <li>在怪物彈珠序號頁面，點擊<span class="highlight">剛剛存入的書籤</span>。（在console上貼上書籤代碼也可）</li>
+                <li>完成！畫面上會跳出序號兌換進度！</li>
+            </ol>
+        </div>
+    </div>
+
+    <!-- 懸浮進度視窗 -->
+    <div class="overlay" id="overlay"></div>
+    <div class="floating-progress" id="floatingProgress">
+        <h3>🎮 兌換進度</h3>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill">0%</div>
+        </div>
+        <div class="stats">
+            <div class="stat-card total">
+                <div class="number" id="totalCount">0</div>
+                <div class="label">總計</div>
+            </div>
+            <div class="stat-card success">
+                <div class="number" id="successCount">0</div>
+                <div class="label">成功</div>
+            </div>
+            <div class="stat-card failed">
+                <div class="number" id="failedCount">0</div>
+                <div class="label">失敗</div>
+            </div>
+        </div>
+        <div class="log-container" id="logContainer"></div>
+        <button class="close-btn" onclick="closeProgress()">關閉</button>
+    </div>
+
+    <script>
+        const API_URL = "https://webshop.monster-strike.com.tw/api/cookie_auth/serial_code";
+
+        function generateBookmarklet() {
+            const gameUserId = document.getElementById('gameUserId').value.trim();
+            const codes = document.getElementById('couponCodes').value.trim();
+
+            if (!gameUserId) {
+                alert('❌ 請輸入遊戲 ID！');
+                return;
+            }
+
+            if (!codes) {
+                alert('❌ 請輸入至少一組序號！');
+                return;
+            }
+
+            const codesArray = codes.split('\n').map(c => c.trim()).filter(c => c);
+
+            // 生成簡潔版 Bookmarklet
+            const bookmarkletCode = `javascript:(function(){var API='${API_URL}';var ID=${gameUserId};var codes=${JSON.stringify(codesArray)};var s=0,f=0,i=0;var o=document.createElement('div');o.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:9999';var b=document.createElement('div');b.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:white;border-radius:15px;padding:30px;width:90%;max-width:500px;z-index:10000';b.innerHTML='<h3>兌換進度</h3><div style="background:#f0f0f0;height:30px;border-radius:15px;margin:20px 0"><div id="pb" style="background:#667eea;height:100%;width:0%;border-radius:15px;transition:width 0.3s;text-align:center;color:white;line-height:30px">0%</div></div><div style="display:flex;gap:10px;margin-bottom:20px"><div style="flex:1;text-align:center;background:#f9f9f9;padding:15px;border-radius:10px"><div id="tc" style="font-size:24px;font-weight:bold;color:#3b82f6">'+codes.length+'</div><div style="font-size:12px;color:#666">總計</div></div><div style="flex:1;text-align:center;background:#f9f9f9;padding:15px;border-radius:10px"><div id="sc" style="font-size:24px;font-weight:bold;color:#10b981">0</div><div style="font-size:12px;color:#666">成功</div></div><div style="flex:1;text-align:center;background:#f9f9f9;padding:15px;border-radius:10px"><div id="fc" style="font-size:24px;font-weight:bold;color:#ef4444">0</div><div style="font-size:12px;color:#666">失敗</div></div></div><div id="lg" style="background:#f9f9f9;border:1px solid #e0e0e0;border-radius:8px;padding:15px;max-height:200px;overflow-y:auto;font-family:monospace;font-size:12px"></div><button onclick="this.parentElement.remove();document.querySelector(\\'div[style*=fixed]\\').remove()" style="background:#ef4444;color:white;border:none;padding:10px 25px;border-radius:25px;cursor:pointer;margin-top:15px;width:100%">關閉</button>';document.body.appendChild(o);document.body.appendChild(b);function log(m,t){var d=document.createElement('div');d.style.color=t=='s'?'#10b981':t=='e'?'#ef4444':'#3b82f6';d.textContent=m;document.getElementById('lg').appendChild(d);document.getElementById('lg').scrollTop=999}function upd(){var p=Math.round(i/codes.length*100);document.getElementById('pb').style.width=p+'%';document.getElementById('pb').textContent=p+'%';document.getElementById('sc').textContent=s;document.getElementById('fc').textContent=f}(async function(){log('開始兌換 '+codes.length+' 組序號','i');for(var j=0;j<codes.length;j++){try{var r=await fetch(API,{method:'POST',headers:{'accept':'application/json, text/plain, */*','content-type':'application/json','x-service-region':'tw'},body:JSON.stringify({code:codes[j],game_user_id:ID}),credentials:'include'});if(r.status==204||r.ok){s++;log('成功 ['+(j+1)+'/'+codes.length+'] '+codes[j],'s')}else{f++;log('失敗 ['+(j+1)+'/'+codes.length+'] '+codes[j],'e')}}catch(e){f++;log('錯誤 ['+(j+1)+'/'+codes.length+'] '+codes[j],'e')}i++;upd();if(j<codes.length-1)await new Promise(function(resolve){setTimeout(resolve,1500)})}log('完成！成功:'+s+' 失敗:'+f,'i')})()})();`;
+
+            document.getElementById('bookmarkletCode').textContent = bookmarkletCode;
+            document.getElementById('codeDisplay').style.display = 'block';
+
+            // 自動選取代碼
+            const codeElement = document.getElementById('bookmarkletCode');
+            const range = document.createRange();
+            range.selectNode(codeElement);
+            window.getSelection().removeAllRanges();
+            window.getSelection().addRange(range);
+
+            alert('\n\n✅ 書籤代碼已生成！請按照下方之使用說明步驟繼續進行。');
+        }
+
+        // function testInCurrentPage() {
+        //     const gameUserId = document.getElementById('gameUserId').value.trim();
+        //     const codes = document.getElementById('couponCodes').value.trim();
+
+        //     if (!gameUserId) {
+        //         alert('❌ 請輸入遊戲 ID！');
+        //         return;
+        //     }
+
+        //     if (!codes) {
+        //         alert('❌ 請輸入至少一組序號！');
+        //         return;
+        //     }
+
+        //     const codesArray = codes.split('\n').map(c => c.trim()).filter(c => c);
+
+        //     if (!confirm(`準備兌換 ${codesArray.length} 組序號，確定開始嗎？`)) {
+        //         return;
+        //     }
+
+        //     runCouponExchange(gameUserId, codesArray);
+        // }
+
+        async function runCouponExchange(gameUserId, codes) {
+            // 顯示懸浮視窗
+            document.getElementById('overlay').style.display = 'block';
+            document.getElementById('floatingProgress').style.display = 'block';
+            document.getElementById('totalCount').textContent = codes.length;
+            document.getElementById('successCount').textContent = '0';
+            document.getElementById('failedCount').textContent = '0';
+            document.getElementById('logContainer').innerHTML = '';
+
+            let successCount = 0;
+            let failedCount = 0;
+
+            function addLog(message, type) {
+                const logEl = document.createElement('div');
+                logEl.className = `log-item log-${type}`;
+                logEl.textContent = message;
+                document.getElementById('logContainer').appendChild(logEl);
+                document.getElementById('logContainer').scrollTop = document.getElementById('logContainer').scrollHeight;
+            }
+
+            function updateProgress(current, total) {
+                const percent = Math.round((current / total) * 100);
+                document.getElementById('progressFill').style.width = percent + '%';
+                document.getElementById('progressFill').textContent = percent + '%';
+                document.getElementById('successCount').textContent = successCount;
+                document.getElementById('failedCount').textContent = failedCount;
+            }
+
+            addLog('🚀 開始兌換 ' + codes.length + ' 組序號', 'info');
+
+            for (let i = 0; i < codes.length; i++) {
+                const code = codes[i];
+                addLog(`📤 [${i + 1}/${codes.length}] 提交: ${code}`, 'info');
+
+                try {
+                    const response = await fetch(API_URL, {
+                        method: 'POST',
+                        headers: {
+                            'accept': 'application/json, text/plain, */*',
+                            'content-type': 'application/json',
+                            'x-game-backend': '',
+                            'x-service-region': 'tw'
+                        },
+                        body: JSON.stringify({
+                            code: code,
+                            game_user_id: parseInt(gameUserId)
+                        }),
+                        credentials: 'include'
+                    });
+
+                    if (response.status === 204 || response.ok) {
+                        successCount++;
+                        addLog(`✅ [${i + 1}/${codes.length}] 成功: ${code}`, 'success');
+                    } else {
+                        failedCount++;
+                        addLog(`❌ [${i + 1}/${codes.length}] 失敗 (${response.status}): ${code}`, 'error');
+                    }
+                } catch (error) {
+                    failedCount++;
+                    addLog(`❌ [${i + 1}/${codes.length}] 錯誤: ${code}`, 'error');
+                }
+
+                updateProgress(i + 1, codes.length);
+
+                if (i < codes.length - 1) {
+                    await new Promise(resolve => setTimeout(resolve, 1500));
+                }
+            }
+
+            addLog(`🎉 完成！成功: ${successCount}, 失敗: ${failedCount}`, 'info');
+        }
+
+        function closeProgress() {
+            document.getElementById('overlay').style.display = 'none';
+            document.getElementById('floatingProgress').style.display = 'none';
+        }
+    </script>
+</body>
+
+</html>
